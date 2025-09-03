@@ -1,0 +1,390 @@
+
+# -*- mode:org; mode:visual-line; -*-
+#+TITLE: Terminologie des Machines à penser
+
+#+BEGIN_SRC emacs-lisp :results silent
+  (setq COUNT 0)
+
+  (defun jmc--cosma-newid (count &optional suffix)
+    (let ((suf (or suffix "01"))
+	  (pre (format-time-string "%Y%m%d24")))
+      (format "%s%s%02d" pre suf (1+ count))))
+
+  (defun jmc-cosma-setid ()
+    (interactive)
+    (org-set-property "CUSTOM_ID" (jmc--cosma-newid COUNT))
+    (setq COUNT (1+ COUNT)))
+
+  (defun jmc-md-files ()
+    (interactive)
+    (let ((i 0)
+	  (parsed (org-element-parse-buffer)))
+      (org-element-map parsed 'headline
+	(lambda (hl)
+	  (with-current-buffer (get-buffer-create "*md-tmp*")
+	    (set-buffer-file-coding-system 'utf-8)
+	    (prefer-coding-system 'utf-8)
+	    (set-default-coding-systems 'utf-8)
+	    (set-language-environment 'utf-8)
+	    (set-selection-coding-system 'utf-8)	    
+	    (insert (format "---\ntitle: %s\nid: %s\ntypes:\n"
+			    (org-element-property :raw-value hl)
+			    (org-element-property :CUSTOM_ID hl)))
+	    (dolist (typ (org-element-property :tags hl))
+	      (insert (format "  - %s\n" typ)))
+	    (insert "---\n\n"))
+	  ;; Fill content one paragraph at a time, skipping drawers
+	  (org-element-map (org-element-contents hl) 'paragraph
+	    (lambda (para)
+	      (let ((str (buffer-substring-no-properties (org-element-property :contents-begin para)
+							 (org-element-property :contents-end para))))
+		(with-current-buffer (get-buffer-create "*md-tmp*")
+		  (insert (format "\n%s\n" str))))))
+	  ;; Save file, hopefully with utf-8 encoding (see above)
+	  (with-current-buffer (get-buffer-create "*md-tmp*")
+	    (write-file (format ".\\out\\couff%d.md" i))
+	    (kill-buffer))
+	  (setq i (1+ i))
+	  ))
+      ))
+
+#+END_SRC
+
+* mécanisme                                                       :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240101
+:END:
+Au sens dénombrable : un système, physique ou idéal, qui peut prendre des états successifs différents ;
+
+Au sens non dénombrable : le comportement d'un mécanisme.
+
+* mécanisme finalisé                                              :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240102
+:END:
+Un mécanisme [[20241016240101]] considéré comme établi pour des interactions avec son environnement exclusivement déterminées.
+
+Note : « Un mécanisme finalisé est considéré comme établi pour des interactions déterminées avec son environnement. L'ingénieur mis en présence d'une machine compliquée voit ce que fait la machine, et il *sait* qu'elle a été construite pour faire cela. Le naturaliste qui rencontre un mécanisme naturel, peut aussi l'observer. Il voit ce que fait le mécanisme, et il *dit* que le mécanisme a été construit pour faire cela. Un tel mode de description des phénomènes sous-entend l'adhésion à un principe d'explicabilité du monde selon certaines normes, qui est métaphysique. »
+
+* données                                                         :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240103
+:END:
+Les actions physiques exercées par l'environnement sur un mécanisme finalisé [[20241016240102]] et les êtres qui les exercent.
+
+* résultats                                                       :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240104
+:END:
+Les modifications de l'environnement dues à l'action du mécanisme [[20241016240101]], et les êtres modifiés par cette action.
+
+* fonction                                                        :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240105
+:END:
+La relation établie par ce mécanisme finalisé [[20241016240102]] entre les données [[20241016240103]] et les résultats [[20241016240104]].
+
+* organe                                                          :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240106
+:END:
+Le mécanisme [[20241016240101]] (généralement partie d'un autre mécanisme) qui réalise une fonction [[20241016240105]].
+
+* structure                                                       :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240107
+:END:
+L'agencement des organes [[20241016240106]] d'un mécanisme [[20241016240101]].
+
+* matière d'œuvre                                                 :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240108
+:END:
+La partie de l'environnement sur laquelle un mécanisme finalisé [[20241016240102]] est destiné à agir.
+
+* effecteur                                                       :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240109
+:END:
+L'organe [[20241016240106]] qui agit sur la matière d'œuvre [[20241016240108]].
+
+* entrée                                                          :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240110
+:END:
+L'organe [[20241016240106]] qui reçoit les données [[20241016240103]].
+
+* sortie                                                          :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240111
+:END:
+L'organe [[20241016240106]] qui fournit les résultats [[20241016240104]].
+
+* fonctionnement                                                  :mécanisme:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240112
+:END:
+L'opération par laquelle le mécanisme [[20241016240101]] réalise sa fonction [[20241016240105]].
+
+* mécanisme artificiel                                         :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240114
+:END:
+Mécanisme [[20241016240101]] construit par l'homme.
+
+* mécanisme naturel                                            :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240115
+:END:
+Mécanisme [[20241016240101]] non construit par l'homme.
+
+* machine                                                      :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240116
+:END:
+Mécanisme finalisé [[20241016240102]] artificiel [[20241016240114]].
+
+* fonction essentielle                                         :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240117
+:END:
+La partie de la logique du mécanisme [[20241016240101]] qui concerne la fonction [[20241016240105]] propre de l'effectuer [[20241016240109]].
+
+* cybernétique                                                 :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240118
+:END:
+La partie de la logique du mécanisme finalisé [[20241016240102]] qui concerne le guidage [[20241016240121]] de ce mécanisme.
+
+La cybernétique est l'art d'assurer l'efficacité de l'action.
+
+* organes cybernétiques                                        :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240119
+:END:
+Les organes qui assurent le guidage [[20241016240121]] de l'action d'un mécanisme finalisé [[20241016240102]].
+
+* mécanisme automatique                                        :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240120
+:END:
+Un mécanisme [[20241016240101]] qui assure son propre guidage [[20241016240121]].
+
+* guidage                                                      :cybernétique:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240121
+:END:
+Le guidage d'un mécanisme finalisé [[20241016240102]] est un ensemble d'opérations auxiliaires qui le contraigent ou l'aident à remplir sa fonction essentielle [[20241016240117]], à atteindre le but qui lui est assigné, savoir : élaborer à partir des données [[20241016240103]] des résultats [[20241016240104]] déterminés.
+
+Le guidage d'un mécanisme, ou de l'action de ce mécanisme, est lui-même une action *qui se propose d'être efficace*. On atteint ainsi la définition ci-après de la cybernétique [[20241016240118]] : La cybernétique est l'art d'assurer l'efficacité de l'action.
+
+Les mécanismes artificiels [[20241016240114]], notamment les machines [[20241016240116]], ont pour loi de leur fonctionnement [[20241016240112]] la *régularité*, qui s'exprime généralement par la constance dans le temps des paramètres numériques caractéristiques du fonctionnement de la machine. Le guidage prend alors le nom de *régulation*. La régulation est assurée dans les machine courantes, soit par un *programme* (machines arithmétiques/numériques), soit par un mécanisme de *contre-réaction* (machines analogiques).
+
+* mécanismes analogues                                             :analogie:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240122
+:END:
+Deux mécanismes [[20241016240101]] sont analogues si certains de leurs organes [[20241016240106]] se correspondent deux à deux par la condition de remplir des fonctions [[20241016240105]] identiques.
+
+* analogie                                                         :analogie:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240123
+:END:
+Au sens dénombrable : toute fonction commune [[20241016240105]] à deux organes [[20241016240106]] qui se correspondent dans deux mécanismes analogues [[20241016240122]].
+
+* raisonnement analogique                                          :analogie:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240124
+:END:
+Processus de la pensée qui consiste, ayant constaté que deux mécanismes [[20241016240122]], dont l'un est mieux connu que l'autre, présentent des analogies [[20241016240123]], à présumer que le second possède des propriétés du premier que l'on ne lui connaissait pas encore.
+
+* modèle                                                           :analogie:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240125
+:END:
+Mécanisme artificiel [[20241016240114]] comportant certaines analogies [[20241016240123]] avec un mécanisme donné ayant pour but de faire apparaîtres d'autres analogies.
+
+* simulateur                                                       :analogie:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240126
+:END:
+Mécanisme artificiel [[20241016240114]] matériel ayant pour seule analogie avec l'original d'atteindre le même but.
+
+* information                                                   :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240127
+:END:
+L'ensemble d'un support [[20241016240128]] et d'une sémantique [[20241016240129]].
+
+On doit ainsi distinguer dans une information son effet physique et son effet psychique.
+
+* support                                                       :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240128
+:END:
+Le phénomène physique associé à une sémantique [[20241016240129]] pour constituer une information [[20241016240127]].
+
+* sémantique                                                    :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240129
+:END:
+L'effet psychique d'une information [[20241016240127]]
+
+* informations équivalentes                                     :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240130
+:END:
+Des informations [[20241016240127]] qui ont la même sémantique [[20241016240129]] et des supports [[20241016240128]] différents.
+
+* informations distinctes                                       :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240131
+:END:
+Des informations [[20241016240127]] qui n'ont pas la même sémantique [[20241016240129]].
+
+* transformation d'une information                              :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240132
+:END:
+L'opération consistant à changer le support [[20241016240128]] de l'information [[20241016240127]] sans en changer la sémantique [[20241016240129]].
+
+Quand les supports de l'information transformée sont des langages [[20241016240139]], on appelle *code* la loi de transformation d'un langage dans un autre langage.
+
+* information univoque                                          :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240133
+:END:
+Une information [[20241016240127]] qui fait correspondre à un support [[20241016240128]] une seule sémantique [[20241016240129]].
+
+* informations voisines                                         :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240134
+:END:
+Des informations distinctes [[20241016240131]] dontl'effet psychique est considéré comme voisin.
+
+* altération d'une information                                  :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240135
+:END:
+La mutation [[20241016240142]] qui fait passer d'une information [[20241016240127]] à une information voisine [[20241016240134]].
+
+* écart d'une information altérée                               :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240136
+:END:
+L'information [[20241016240127]] qu'il faut adjoindre à une information altérée [[20241016240135]] pour rétablir l'information initiale.
+
+* information persistante                                       :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240137
+:END:
+Information [[20241016240127]] dont le support [[20241016240128]] subsiste dans l'espace longtemps après l'instant où elle s'est manifestée.
+
+* information temporaire ou transitoire                         :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240138
+:END:
+Information non persistante [[20241016240137]].
+
+* langage                                                       :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240139
+:END:
+Support [[20241016240128]] d'information [[20241016240127]] formé d'éléments de structure déterminée.
+
+* signe et signal                                               :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240140
+:END:
+Elément insécable d'un langage [[20241016240139]] : *signe* désignant un élément persistant, *signal* un élément transitoire.
+
+* catène                                                        :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240141
+:END:
+Ensemble de signes ou de signaux constituant le support [[20241016240128]] d'une information.
+
+* mutation d'une information                                    :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240142
+:END:
+L'opération consistant à changer la sémantique [[20241016240129]] de l'information [[20241016240127]] sans en changer le support [[20241016240128]].
+
+* information dialectique ou discursive                         :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240143
+:END:
+Information formée de catènes [[20241016240141]] d'un langage [[20241016240139]] déterminé.
+
+* syntaxe cybernétique d'un langage                             :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240144
+:END:
+Les lois de structuration [[20241016240118]] des catènes [[20241016240141]] de ce langage [[20241016240139]].
+
+* information descriptive                                       :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240145
+:END:
+Une information [[20241016240127]] relative à la connaissance d'un être ou de son comportement.
+
+* pattern                                                       :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240146
+:END:
+La sémantique [[20241016240129]] d'une information descriptive [[20241016240145]].
+
+* pattern de connaissance immédiate                             :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240147
+:END:
+La sémantique [[20241016240129]] d'une information non dialectique [[20241016240143]].
+
+* symbole                                                       :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240148
+:END:
+Un être dont l'action évoque un pattern [[20241016240146]], un être, etc.
+
+* modèle dialectique                                            :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240149
+:END:
+Une description faite dans un langage [[20241016240139]], donc au moyen de symboles [[20241016240148]].
+
+* attribut                                                      :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240150
+:END:
+Le pattern [[20241016240146]] correspondant à un symbole [[20241016240148]] utilisé dans un modèle dialectique [[20241016240149]].
+
+* prédicat ou attribut insécable                                :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240151
+:END:
+Un attribut [[20241016240150]] qui ne peut être décrit par d'autres attributs.
+
+* modèle dialectique élémentaire                                :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240152
+:END:
+La description d'un pattern de connaissance immédiate [[20241016240147]].
+
+* opérations informationnelles                                  :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240153
+:END:
+Les opérations qu'on peut faire subir à une information [[20241016240127]].
+
+La transformation d'une information [[20241016240132]] est une opération informationnelle.
+
+La transmission d'une information (Shannon), la conservation et la combinaison d'informations sont également des opérations informationnelles.
+
+* mécanismes informationnels                                    :information:
+:PROPERTIES:
+:CUSTOM_ID: 20241016240154
+:END:
+Les mécanismes [[20241016240101]] qui exécutent des opérations informationnelles [[20241016240153]].
+
+
+

@@ -1,0 +1,136 @@
+(require 'imenu-list)
+(require 'cl-lib)	
+(require 'company)
+
+(defvar terminology-form--terms nil)
+
+(defun terminology-form--json-terms ()
+  (interactive)
+  ;; Nodes
+  (with-current-buffer (get-buffer-create "*TERMS*")
+    (erase-buffer)
+    (insert "{ nodes: [")
+    (dolist (term terminology-form--terms)
+      (insert (format "\n{ id: \"%s\", group: %d}," (car term) 1))
+      )
+    (delete-char -1)
+    (insert "\n],\n")
+    )
+  ;; Links
+  (with-current-buffer (get-buffer-create "*TERMS*")
+    (insert "links: ["))
+  (let ((cur forms--current-record))
+    (save-excursion
+      (dotimes (n forms--total-records)
+	(forms-jump-record (1+ n))
+	(let* ((the-record (forms--parse-form))
+	       (source (car the-record))
+	       (targets (split-string (nth 6 the-record) "[,\\.]" t " " ))
+	       )
+	  (with-current-buffer (get-buffer-create "*TERMS*")
+	    (dolist (term targets)
+	      (if (assoc term terminology-form--terms)
+		  (insert (format "\n{source:\"%s\", target:\"%s\", value:1},"
+				  source
+				  term))))
+	    )
+	  )
+	)
+      (forms-jump-record cur)
+      ))
+  (with-current-buffer (get-buffer-create "*TERMS*")
+    (delete-char -1)
+    (insert "]}\n"))
+
+  )
+  
+
+;; Create a CAPF for company-mode
+(defun terminology-form--backend (command &optional arg &rest ignored)
+  
+  (cl-case command
+    (interactive (company-begin-backend 'terminology-form--backend))
+    (prefix (and (eq major-mode 'forms-mode)
+                 (company-grab-symbol)))
+    (candidates
+     (cl-remove-if-not
+      (lambda (c) (string-prefix-p arg c))
+      (mapcar #'car terminology-form--terms)))
+    )
+  )
+
+(add-to-list 'company-backends 'terminology-form--backend)
+
+
+;; Provide content to imenu-list
+(defun terminology-form--index-special (index-name index-position)
+  (forms-jump-record index-position))
+
+(defun terminology-form--update-index ()
+  (let ((alist '()))
+    (setq terminology-form--terms
+	  (dotimes (n forms--total-records alist)
+	    (forms-jump-record (1+ n))
+	    (let ((the-record (forms--parse-form)))
+	      (push (list (car the-record) (1+ n) #'terminology-form--index-special) alist)
+	      )
+	    )
+	  )
+    (setq terminology-form--terms (cl-sort terminology-form--terms 'string-lessp :key 'car))
+    )
+  )
+  
+(defun terminology-form--create-index ()
+  (let ((current-record forms--current-record))
+    (save-excursion
+      (terminology-form--update-index))
+    (forms-jump-record current-record))
+  terminology-form--terms
+  )
+
+;; Install hooks and globales
+
+(setq
+ imenu-create-index-function	#'terminology-form--create-index
+ forms-mode-hook		#'imenu-list
+ forms-write-file-filter	#'imenu-list-refresh
+ )
+
+;; Define form
+(setq 
+ documents-directory "C:\\Users\\chauv\\Documents\\TERMINOLOGY\\"
+ forms-file (expand-file-name
+	     "terminology-terms.dat"
+	     documents-directory))
+
+(setq forms-number-of-fields
+      (forms-enumerate
+       '(terminology-term
+         terminology-abbreviation
+         terminology-domain
+         terminology-synonym
+         terminology-definition
+         terminology-notes
+         terminology-seealso
+         terminology-foreign
+         terminology-attention
+	 )))
+
+;; The format list.
+(setq forms-format-list
+      (list
+       "====== Terminology ======\n\n"
+       "Terme : "			terminology-term
+       "\nAbrev. : "			terminology-abbreviation      
+       "\nDomaine : "			terminology-domain
+       "\n"
+       
+       "\nDéfinition : "		terminology-definition
+       "\nNotes : "			terminology-notes
+       "\nVoir aussi : "		terminology-seealso
+       "\nÉquivalent étranger : "	terminology-foreign
+       
+       "\n\n====== Attention ======\n\n"
+       terminology-attention
+       ))
+
